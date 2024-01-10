@@ -17,8 +17,14 @@ sudo apt install openjdk-17-jdk -y
 # Navigate to the /tmp directory
 cd /tmp
 
-# Download the archive using wget
+# Download tomcat using wget
 wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz
+
+# Check if the file is downloaded successfully
+if [ ! -f apache-tomcat-10.1.18.tar.gz ]; then
+    echo "Failed to download tomcat. Exiting." 
+    exit 1
+fi
 
 # Extract the archive
 sudo tar xzvf apache-tomcat-10*.tar.gz -C /opt/tomcat --strip-components=1
