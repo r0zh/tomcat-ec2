@@ -18,16 +18,16 @@ sudo apt install openjdk-17-jdk -y
 cd /tmp
 
 # Download tomcat using wget
-wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz
+wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz -O tomcat.tar.gz
 
 # Check if the file is downloaded successfully
-if [ ! -f apache-tomcat-10.1.18.tar.gz ]; then
+if [ ! -f tomcat.tar.gz ]; then
     echo "Failed to download tomcat. Exiting." 
     exit 1
 fi
 
 # Extract the archive
-sudo tar xzvf apache-tomcat-10*.tar.gz -C /opt/tomcat --strip-components=1
+sudo tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1
 
 # Grant tomcat ownership over the extracted installation
 sudo chown -R tomcat:tomcat /opt/tomcat/
