@@ -1,7 +1,12 @@
 #!/bin/bash
 
 # Create a user called tomcat
-sudo useradd -m -d /opt/tomcat -U -s /bin/false tomcat
+if id -u tomcat &>/dev/null; then
+    echo "User tomcat already exists."
+else
+    sudo useradd -m -d /opt/tomcat -U -s /bin/false tomcat
+    echo "Added tomcat user successfully."
+fi
 
 # Update the package manager cache
 sudo apt update
