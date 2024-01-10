@@ -26,7 +26,7 @@ if [ ! -f tomcat.tar.gz ]; then
     exit 1
 fi
 
-# Extract the archive
+# Extract tomcat to /opt/tomcat
 sudo tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1
 
 # Grant tomcat ownership over the extracted installation
