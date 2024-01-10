@@ -2,10 +2,10 @@
 
 # Create a user called tomcat
 if id -u tomcat &>/dev/null; then
-    echo "User tomcat already exists."
+    echo -e "\033[1;34mUser tomcat already exists. Skipping creation...\033[0m"
 else
     sudo useradd -m -d /opt/tomcat -U -s /bin/false tomcat
-    echo "Added tomcat user successfully."
+    echo -e "\033[1;32mAdded tomcat user successfully. ✅\033[0m"
 fi
 
 # Update the package manager cache
