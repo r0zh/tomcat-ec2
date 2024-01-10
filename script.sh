@@ -33,12 +33,6 @@ for i in {1..4}; do
     fi
 done
 
-# Check if the file is downloaded successfully
-if [ ! -f tomcat.tar.gz ]; then
-    echo "Failed to download tomcat after 3 attempts. Exiting."
-    exit 1
-fi
-
 # Extract tomcat to /opt/tomcat
 sudo tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1
 
