@@ -18,11 +18,24 @@ sudo apt install openjdk-17-jdk -y
 cd /tmp
 
 # Download tomcat using wget
-wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz -O tomcat.tar.gz
+for i in {1..4}; do
+    curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz
+    # Check if the file is downloaded successfully
+    if [ -f tomcat.tar.gz ]; then
+        echo -e "\033[1;32mDownloaded tomcat successfully!✅\033[0m"
+        break
+    elif [ $i -ne 4 ]; then
+        echo "\033[1;33mAttempt $i failed! Trying again...\033[0m"
+        sleep 2
+    elif [ ! -f tomcat.tar.gz ] && [ $i -eq 4 ]; then
+        echo "\033[1;31mFailed to download tomcat after 3 attempts. Exiting. ❌\033[0m"
+        exit 1
+    fi
+done
 
 # Check if the file is downloaded successfully
 if [ ! -f tomcat.tar.gz ]; then
-    echo "Failed to download tomcat. Exiting."
+    echo "Failed to download tomcat after 3 attempts. Exiting."
     exit 1
 fi
 
