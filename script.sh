@@ -23,7 +23,7 @@ spinner() {
 
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
-    echo -e "\033[1;31mThis script needs to be run with sudo. Please run it again as root ❌\033[0m"
+    echo -e "\033[1;31mThis script needs to be run with sudo. Please run it again as root\033[0m"
     exit
 fi
 
@@ -193,33 +193,3 @@ if systemctl is-active --quiet tomcat; then # if the service is active (returns 
 else # if the service is not active (returns 3)
     echo -e "$error Something went wrong"
 fi
-
-# Wait for user input to undo everything
-echo -e "\033[1;34mPress any key to undo everything...\033[0m"
-read -r -n 1 -s
-
-# Stop the Tomcat service
-systemctl stop tomcat
-
-# Disable the Tomcat service from starting on boot
-systemctl disable tomcat
-
-# Remove the Tomcat service file
-rm /etc/systemd/system/tomcat.service
-
-# Reload the systemd daemon
-systemctl daemon-reload
-
-# Remove temporary files
-rm /tmp/tomcat.tar.gz
-
-# Remove the Tomcat directory
-rm -rf /opt/tomcat
-
-# Remove the tomcat user
-deluser --remove-home tomcat
-
-# Remove the tomcat group
-delgroup tomcat
-
-echo "All changes have been reverted!"
