@@ -66,11 +66,12 @@ for i in {1..4}; do
 done
  
 # Extract tomcat to /opt/tomcat
-(tar xzvf tomcat.tar.gz -C ./tomcat --strip-components=1 > /dev/null 2>&1)
+(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 > /dev/null 2>&1)
 if [ $? -eq 0 ]; then
    echo -e "$info \033[32mTomcat extracted successfully\033[0m"
 else
    echo -e "$error Failed to extract Tomcat"
+   exit 1
 fi
 
 # Grant tomcat ownership over the extracted installation
