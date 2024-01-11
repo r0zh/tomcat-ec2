@@ -98,7 +98,6 @@ sed -i '/allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/>/c\allow="127\\
 
 # Store the JAVA_HOME path in a variable
 java_home=$(update-java-alternatives -l | tr -s ' ' | cut -d' ' -f3)
-echo $java_home
 
 # Create a systemd service file for Tomcat
 touch /etc/systemd/system/tomcat.service
