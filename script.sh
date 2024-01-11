@@ -145,3 +145,30 @@ if systemctl is-active --quiet tomcat; then # if the service is active (returns 
 else # if the service is not active (returns 3)
     echo -e "\033[1;31m Something went wrong! ❌ \033[0m"
 fi
+
+# Wait for user input to undo everything
+echo -e "\033[1;34mPress any key to undo everything...\033[0m"
+read -r -n 1 -s
+
+# Stop the Tomcat service
+systemctl stop tomcat
+
+# Disable the Tomcat service from starting on boot
+systemctl disable tomcat
+
+# Remove the Tomcat service file
+rm /etc/systemd/system/tomcat.service
+
+# Reload the systemd daemon
+systemctl daemon-reload
+
+# Remove the Tomcat directory
+rm -rf /opt/tomcat
+
+# Remove the tomcat user
+deluser --remove-home tomcat
+
+# Remove the tomcat group
+delgroup tomcat
+
+echo "All changes have been reverted!"
