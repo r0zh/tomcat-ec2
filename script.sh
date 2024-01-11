@@ -142,7 +142,7 @@ systemctl daemon-reload
 # Start the Tomcat service
 systemctl start tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "$info \033[32mStarted tomcat service \033[0m"
+    echo -e "$info Started tomcat service"
 else  
     echo -e "$error Failed to start Tomcat service"
     exit 1
@@ -151,7 +151,7 @@ fi
 # Enable the Tomcat service to start on boot
 systemctl enable tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "$info \033[32mEnabled tomcat service \033[0m"
+    echo -e "$info Enabled tomcat service"
 else
     echo -e "$error Failed to enable Tomcat service"
     exit 1
