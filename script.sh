@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Define log decorations
+warn="\033[43m\033[37m\033[1m WARN \033[0m"   
+error="\033[41m\033[37m\033[1m FAIL \033[0m"  
+info="\033[44m\033[37m\033[1m INFO \033[0m"
+
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
     echo -e "\033[1;31mThis script needs to be run with sudo. Please run it again as root ❌\033[0m"
@@ -38,12 +43,36 @@ apt install openjdk-17-jdk -y
 # Navigate to the /tmp directory
 cd /tmp
 
+# Download tomcat using curl
+for i in {1..4}; do
+    curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz
+    # Check if the file is downloaded successfully
+    if [ -f tomcat.tar.gz ]; then
+        echo -e "$info \033[32mDownloaded tomcat successfully ✅\033[0m"  
+        break
+    elif [ $i -ne 4 ]; then
+        echo -e "$warn Attempt $i failed! Trying again..."
+        sleep 2
+    elif [ ! -f tomcat.tar.gz ] && [ $i -eq 4 ]; then
+        echo -e "$error Failed to download tomcat after 3 attempts. Exiting."
+        exit 1
+    fi
+done
+ 
+# Extract tomcat to /opt/tomcat
+(tar xzvf tomcat.tar.gz -C ./tomcat --strip-components=1 > /dev/null 2>&1)
+if [ $? -eq 0 ]; then
+   echo -e "$info \033[32mTomcat extracted successfully\033[0m"
+else
+   echo -e "$error Failed to extract Tomcat"
+fi
+
 # Download tomcat using wget
 for i in {1..4}; do
     curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz
     # Check if the file is downloaded successfully
     if [ -f tomcat.tar.gz ]; then
-        echo -e "\033[1;32mDownloaded tomcat successfully!✅\033[0m"
+        echo -e "\033[1;34mDownloaded tomcat successfully\033[0m"
         break
     elif [ $i -ne 4 ]; then
         echo "\033[1;33mAttempt $i failed! Trying again...\033[0m"
@@ -55,11 +84,14 @@ for i in {1..4}; do
 done
 
 # Extract tomcat to /opt/tomcat
+(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 > /dev/null 2>&1) && echo "Tomcat extracted successfully"
 tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1
 
 # Grant tomcat ownership over the extracted installation
 chown -R tomcat:tomcat /opt/tomcat/
 chmod -R u+x /opt/tomcat/bin
+
+echo -e "\033[1;32mInstaled tomcat successfully!✅\033[0m"
 
 # Define privileged users in Tomcat’s configuration
 # subtitutes tomcat-users closing tag with a role tag
