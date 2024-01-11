@@ -134,16 +134,28 @@ EOF
 )
 
 # Add the content to the service file
-echo "$content" >/etc/systemd/system/tomcat.service
+echo "$content" > /etc/systemd/system/tomcat.service
 
 # Reload the systemd daemon
 systemctl daemon-reload
 
 # Start the Tomcat service
-systemctl start tomcat
+systemctl start tomcat >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo -e "$info \033[32mTomcat service started successfully\033[0m"
+else  
+    echo -e "$error Failed to start Tomcat service"
+    exit 1
+fi
 
 # Enable the Tomcat service to start on boot
-systemctl enable tomcat
+systemctl enable tomcat >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo -e "$info \033[32mTomcat service enabled successfully\033[0m"
+else
+    echo -e "$error Failed to enable Tomcat service"
+    exit 1
+fi
 
 # Check if the Tomcat service is active
 if systemctl is-active --quiet tomcat; then # if the service is active (returns 0)
