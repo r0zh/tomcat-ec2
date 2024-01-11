@@ -12,26 +12,32 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Create a user called tomcat
+# Check if the user already exists
 if id -u tomcat &>/dev/null; then
     echo -e "\033[1;34mUser tomcat already exists. This script will change it group, home directory and login shell. Proceed? (Y/n)...\033[0m"
     read -r answer
     if [ "$answer" != "${answer#[Yy]}" ]; then
+        # Update the tomcat user home directory and login shell
         mkdir /opt/tomcat
-        echo -e "\033[1;32mCreated tomcat home directory successfully. ✅\033[0m"
+        echo -e "$info Created tomcat home directory successfully."
         usermod -m -d /opt/tomcat -s /bin/false tomcat
-        echo -e "\033[1;32mChanged tomcat user successfully. ✅\033[0m"
+        echo -e "$info Updated tomcat user successfully."
+        # Add tomcat to the tomcat group
         if grep -q "^tomcat:" /etc/group; then
-            echo -e "\033[1;34mGroup tomcat already exists. Skipping group creation...\033[0m"
+            echo -e "$info Group tomcat already exists. Skipping group creation..."
         else
             groupadd tomcat
-            echo -e "\033[1;32mAdded tomcat group successfully. ✅\033[0m"
+            echo -e "$info Added tomcat group successfully."
         fi
         usermod -a -G tomcat tomcat
-        echo -e "\033[1;32mAdded tomcat user to tomcat group successfully. ✅\033[0m"
+        echo -e "$info Added tomcat user to tomcat group successfully."
     else
-        echo -e "\033[1;31mExiting. ❌\033[0m"
+        echo -e "\033[31mExiting.\033[0m"
         exit 1
     fi
+else 
+    useradd -m -d /opt/tomcat -s /bin/false tomcat
+    echo -e "$info \033[1;32mCreated tomcat user successfully.\033[0m" 
 fi
 
 # Update the package manager cache
