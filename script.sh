@@ -67,26 +67,6 @@ else
    echo -e "$error Failed to extract Tomcat"
 fi
 
-# Download tomcat using wget
-for i in {1..4}; do
-    curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz
-    # Check if the file is downloaded successfully
-    if [ -f tomcat.tar.gz ]; then
-        echo -e "\033[1;34mDownloaded tomcat successfully\033[0m"
-        break
-    elif [ $i -ne 4 ]; then
-        echo "\033[1;33mAttempt $i failed! Trying again...\033[0m"
-        sleep 2
-    elif [ ! -f tomcat.tar.gz ] && [ $i -eq 4 ]; then
-        echo "\033[1;31mFailed to download tomcat after 3 attempts. Exiting. ❌\033[0m"
-        exit 1
-    fi
-done
-
-# Extract tomcat to /opt/tomcat
-(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 > /dev/null 2>&1) && echo "Tomcat extracted successfully"
-tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1
-
 # Grant tomcat ownership over the extracted installation
 chown -R tomcat:tomcat /opt/tomcat/
 chmod -R u+x /opt/tomcat/bin
