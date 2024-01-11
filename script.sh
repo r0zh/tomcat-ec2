@@ -7,17 +7,18 @@ info="\033[44m\033[37m\033[1m INFO \033[0m"
 
 # Define a spinner function
 spinner() {
-   local pid=$!
-   local delay=0.1
-   local spinstr='/-\|'
-   while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-       local temp=${spinstr#?}
-       printf " [%c] " "$spinstr"
-       local spinstr=$temp${spinstr%"$temp"}
-       sleep $delay
-       printf "\b\b\b\b\b\b"
-   done
-   printf "   \b\b\b\b"
+    local pid=$! # Store the PID of the previous command
+    local delay=0.1 # Delay between each frame
+    local spinstr='/-\|' # Define the spinner characters
+    # Continue looping until the process with the given PID is no longer running
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?} 
+        printf " [%c] " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "   \b\b\b\b" # Clear the spinner
 }
 
 
@@ -183,7 +184,7 @@ fi
 
 # Check if the Tomcat service is active
 if systemctl is-active --quiet tomcat; then # if the service is active (returns 0)
-    echo -e "$info \033[1;32mServer is running! 🚀 \033[0m"
+    echo -e "$info \033[1;32mServer is running at port 8080 🚀 \033[0m"
 else # if the service is not active (returns 3)
     echo -e "$error Something went wrong"
 fi
