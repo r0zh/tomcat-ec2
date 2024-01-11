@@ -57,12 +57,12 @@ else
 fi
 
 # Update the package manager cache
-echo "$info Updating package manager cache..."
+echo -e "$info Updating package manager cache..."
 apt update > /dev/null 2>&1 &
 spinner
 
 # Install the JDK
-echo "$info Installing JDK-17..."
+echo -e "$info Installing JDK-17..."
 apt install openjdk-17-jdk -y > /dev/null 2>&1 &
 spinner
 
@@ -71,7 +71,9 @@ cd /tmp
 
 # Download tomcat using curl
 for i in {1..4}; do
-    curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz
+    echo -e "$info Downloading tomcat..."
+    curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz > /dev/null 2>&1 &
+    spinner
     # Check if the file is downloaded 
     if [ -f tomcat.tar.gz ]; then
         echo -e "$info Downloaded tomcat"  
@@ -86,7 +88,9 @@ for i in {1..4}; do
 done
  
 # Extract tomcat to /opt/tomcat
-(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 > /dev/null 2>&1)
+echo -e "$info Extracting tomcat..."
+(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 > /dev/null 2>&1) &
+spinner
 if [ $? -eq 0 ]; then
    echo -e "$info Extracted tomcat"
 else
