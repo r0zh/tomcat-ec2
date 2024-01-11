@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check if the script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo -e "\033[1;31mThis script needs to be run with sudo. Please run it again as root ❌\033[0m"
+    exit
+fi
+
 # Create a user called tomcat
 if id -u tomcat &>/dev/null; then
     echo -e "\033[1;34mUser tomcat already exists. This script will change it group, home directory and login shell. Proceed? (Y/n)...\033[0m"
@@ -7,15 +13,15 @@ if id -u tomcat &>/dev/null; then
     if [ "$answer" != "${answer#[Yy]}" ]; then
         mkdir /opt/tomcat
         echo -e "\033[1;32mCreated tomcat home directory successfully. ✅\033[0m"
-        sudo usermod -m -d /opt/tomcat -s /bin/false tomcat
+        usermod -m -d /opt/tomcat -s /bin/false tomcat
         echo -e "\033[1;32mChanged tomcat user successfully. ✅\033[0m"
         if grep -q "^tomcat:" /etc/group; then
             echo -e "\033[1;34mGroup tomcat already exists. Skipping group creation...\033[0m"
         else
-            sudo groupadd tomcat
+            groupadd tomcat
             echo -e "\033[1;32mAdded tomcat group successfully. ✅\033[0m"
         fi
-        sudo usermod -a -G tomcat tomcat
+        usermod -a -G tomcat tomcat
         echo -e "\033[1;32mAdded tomcat user to tomcat group successfully. ✅\033[0m"
     else
         echo -e "\033[1;31mExiting. ❌\033[0m"
@@ -24,10 +30,10 @@ if id -u tomcat &>/dev/null; then
 fi
 
 # Update the package manager cache
-sudo apt update
+apt update
 
 # Install the JDK
-sudo apt install openjdk-17-jdk -y
+apt install openjdk-17-jdk -y
 
 # Navigate to the /tmp directory
 cd /tmp
@@ -49,21 +55,21 @@ for i in {1..4}; do
 done
 
 # Extract tomcat to /opt/tomcat
-sudo tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1
+tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1
 
 # Grant tomcat ownership over the extracted installation
-sudo chown -R tomcat:tomcat /opt/tomcat/
-sudo chmod -R u+x /opt/tomcat/bin
+chown -R tomcat:tomcat /opt/tomcat/
+chmod -R u+x /opt/tomcat/bin
 
 # Define privileged users in Tomcat’s configuration
 # subtitutes tomcat-users closing tag with a role tag
 sed -i '/<\/tomcat-users>/c\<role rolename="manager-gui" \/>' /opt/tomcat/conf/tomcat-users.xml
 # adds the rest of the role tags
-echo '<user username="manager" password="manager_password" roles="manager-gui" />' | sudo tee -a /opt/tomcat/conf/tomcat-users.xml
-echo '<role rolename="admin-gui" />' | sudo tee -a /opt/tomcat/conf/tomcat-users.xml
-echo '<user username="admin" password="admin_password" roles="manager-gui,admin-gui" />' | sudo tee -a /opt/tomcat/conf/tomcat-users.xml
+echo '<user username="manager" password="manager_password" roles="manager-gui" />' | tee -a /opt/tomcat/conf/tomcat-users.xml
+echo '<role rolename="admin-gui" />' | tee -a /opt/tomcat/conf/tomcat-users.xml
+echo '<user username="admin" password="admin_password" roles="manager-gui,admin-gui" />' | tee -a /opt/tomcat/conf/tomcat-users.xml
 # closes the tomcat-users tag
-echo '</tomcat-users>' | sudo tee -a /opt/tomcat/conf/tomcat-users.xml
+echo '</tomcat-users>' | tee -a /opt/tomcat/conf/tomcat-users.xml
 
 # Remove the restriction for the Manager and Host Manager page by commenting out RemoteAddrValve
 sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/c\<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"' /opt/tomcat/webapps/manager/META-INF/context.xml
@@ -113,13 +119,13 @@ EOF
 echo "$content" >/etc/systemd/system/tomcat.service
 
 # Reload the systemd daemon
-sudo systemctl daemon-reload
+systemctl daemon-reload
 
 # Start the Tomcat service
-sudo systemctl start tomcat
+systemctl start tomcat
 
 # Enable the Tomcat service to start on boot
-sudo systemctl enable tomcat
+systemctl enable tomcat
 
 # Check if the Tomcat service is active
 if systemctl is-active --quiet tomcat; then # if the service is active (returns 0)
