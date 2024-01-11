@@ -2,10 +2,25 @@
 
 # Create a user called tomcat
 if id -u tomcat &>/dev/null; then
-    echo -e "\033[1;34mUser tomcat already exists. Skipping creation...\033[0m"
-else
-    sudo useradd -m -d /opt/tomcat -U -s /bin/false tomcat
-    echo -e "\033[1;32mAdded tomcat user successfully. ✅\033[0m"
+    echo -e "\033[1;34mUser tomcat already exists. This script will change it group, home directory and login shell. Proceed? (Y/n)...\033[0m"
+    read -r answer
+    if [ "$answer" != "${answer#[Yy]}" ]; then
+        mkdir /opt/tomcat
+        echo -e "\033[1;32mCreated tomcat home directory successfully. ✅\033[0m"
+        sudo usermod -m -d /opt/tomcat -s /bin/false tomcat
+        echo -e "\033[1;32mChanged tomcat user successfully. ✅\033[0m"
+        if grep -q "^tomcat:" /etc/group; then
+            echo -e "\033[1;34mGroup tomcat already exists. Skipping group creation...\033[0m"
+        else
+            sudo groupadd tomcat
+            echo -e "\033[1;32mAdded tomcat group successfully. ✅\033[0m"
+        fi
+        sudo usermod -a -G tomcat tomcat
+        echo -e "\033[1;32mAdded tomcat user to tomcat group successfully. ✅\033[0m"
+    else
+        echo -e "\033[1;31mExiting. ❌\033[0m"
+        exit 1
+    fi
 fi
 
 # Update the package manager cache
