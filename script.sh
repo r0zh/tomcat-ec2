@@ -5,6 +5,22 @@ warn="\033[43m\033[37m\033[1m WARN \033[0m"
 error="\033[41m\033[37m\033[1m FAIL \033[0m"  
 info="\033[44m\033[37m\033[1m INFO \033[0m"
 
+# Define a spinner function
+spinner() {
+   local pid=$!
+   local delay=0.1
+   local spinstr='/-\|'
+   while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+       local temp=${spinstr#?}
+       printf " [%c] " "$spinstr"
+       local spinstr=$temp${spinstr%"$temp"}
+       sleep $delay
+       printf "\b\b\b\b\b\b"
+   done
+   printf "   \b\b\b\b"
+}
+
+
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
     echo -e "\033[1;31mThis script needs to be run with sudo. Please run it again as root ❌\033[0m"
@@ -41,7 +57,9 @@ else
 fi
 
 # Update the package manager cache
-apt update
+echo "Updating package manager cache..."
+apt update > /dev/null 2>&1 &
+spinner
 
 # Install the JDK
 apt install openjdk-17-jdk -y
