@@ -19,25 +19,25 @@ if id -u tomcat &>/dev/null; then
     if [ "$answer" != "${answer#[Yy]}" ]; then
         # Update the tomcat user home directory and login shell
         mkdir /opt/tomcat
-        echo -e "$info Created tomcat home directory successfully."
+        echo -e "$info Created tomcat home directory."
         usermod -m -d /opt/tomcat -s /bin/false tomcat
-        echo -e "$info Updated tomcat user successfully."
+        echo -e "$info Updated tomcat user."
         # Add tomcat to the tomcat group
         if grep -q "^tomcat:" /etc/group; then
             echo -e "$info Group tomcat already exists. Skipping group creation..."
         else
             groupadd tomcat
-            echo -e "$info Added tomcat group successfully."
+            echo -e "$info Added tomcat group."
         fi
         usermod -a -G tomcat tomcat
-        echo -e "$info Added tomcat user to tomcat group successfully."
+        echo -e "$info Added tomcat user to tomcat group."
     else
         echo -e "\033[31mExiting.\033[0m"
         exit 1
     fi
 else 
     useradd -m -d /opt/tomcat -s /bin/false tomcat
-    echo -e "$info \033[1;32mCreated tomcat user successfully.\033[0m" 
+    echo -e "$info \033[1;32mCreated tomcat user.\033[0m" 
 fi
 
 # Update the package manager cache
@@ -52,9 +52,9 @@ cd /tmp
 # Download tomcat using curl
 for i in {1..4}; do
     curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz
-    # Check if the file is downloaded successfully
+    # Check if the file is downloaded 
     if [ -f tomcat.tar.gz ]; then
-        echo -e "$info \033[32mDownloaded tomcat successfully ✅\033[0m"  
+        echo -e "$info Downloaded tomcat"  
         break
     elif [ $i -ne 4 ]; then
         echo -e "$warn Attempt $i failed! Trying again..."
@@ -68,7 +68,7 @@ done
 # Extract tomcat to /opt/tomcat
 (tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 > /dev/null 2>&1)
 if [ $? -eq 0 ]; then
-   echo -e "$info \033[32mTomcat extracted successfully\033[0m"
+   echo -e "$info Extracted tomcat"
 else
    echo -e "$error Failed to extract Tomcat"
    exit 1
@@ -78,7 +78,7 @@ fi
 chown -R tomcat:tomcat /opt/tomcat/
 chmod -R u+x /opt/tomcat/bin
 
-echo -e "\033[1;32mInstaled tomcat successfully!✅\033[0m"
+echo -e "$info \033[1;32mInstaled tomcat\033[0m"
 
 # Define privileged users in Tomcat’s configuration
 # subtitutes tomcat-users closing tag with a role tag
@@ -142,7 +142,7 @@ systemctl daemon-reload
 # Start the Tomcat service
 systemctl start tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "$info \033[32mStarted tomcat service successfully\033[0m"
+    echo -e "$info \033[32mStarted tomcat service \033[0m"
 else  
     echo -e "$error Failed to start Tomcat service"
     exit 1
@@ -151,7 +151,7 @@ fi
 # Enable the Tomcat service to start on boot
 systemctl enable tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "$info \033[32mEnabled tomcat service successfully\033[0m"
+    echo -e "$info \033[32mEnabled tomcat service \033[0m"
 else
     echo -e "$error Failed to enable Tomcat service"
     exit 1
