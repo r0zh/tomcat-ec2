@@ -1,18 +1,18 @@
 #!/bin/bash
 
 # Define log decorations
-warn="\033[43m\033[37m\033[1m WARN \033[0m"   
-error="\033[41m\033[37m\033[1m FAIL \033[0m"  
+warn="\033[43m\033[37m\033[1m WARN \033[0m"
+error="\033[41m\033[37m\033[1m FAIL \033[0m"
 info="\033[44m\033[37m\033[1m INFO \033[0m"
 
 # Define a spinner function
 spinner() {
-    local pid=$! # Store the PID of the previous command
-    local delay=0.1 # Delay between each frame
+    local pid=$!         # Store the PID of the previous command
+    local delay=0.1      # Delay between each frame
     local spinstr='/-\|' # Define the spinner characters
     # Continue looping until the process with the given PID is no longer running
     while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-        local temp=${spinstr#?} 
+        local temp=${spinstr#?}
         printf " [%c] " "$spinstr"
         local spinstr=$temp${spinstr%"$temp"}
         sleep $delay
@@ -20,7 +20,6 @@ spinner() {
     done
     printf "   \b\b\b\b" # Clear the spinner
 }
-
 
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
@@ -52,19 +51,19 @@ if id -u tomcat &>/dev/null; then
         echo -e "\033[31mExiting.\033[0m"
         exit 1
     fi
-else 
+else
     useradd -m -d /opt/tomcat -s /bin/false tomcat
-    echo -e "$info \033[1;32mCreated tomcat user.\033[0m" 
+    echo -e "$info \033[1;32mCreated tomcat user.\033[0m"
 fi
 
 # Update the package manager cache
 echo -e "$info Updating package manager cache..."
-apt update > /dev/null 2>&1 &
+apt update >/dev/null 2>&1 &
 spinner
 
 # Install the JDK
 echo -e "$info Installing JDK-17..."
-apt install openjdk-17-jdk -y > /dev/null 2>&1 &
+apt install openjdk-17-jdk -y >/dev/null 2>&1 &
 spinner
 
 # Navigate to the /tmp directory
@@ -73,11 +72,11 @@ cd /tmp
 # Download tomcat using curl
 for i in {1..4}; do
     echo -e "$info Downloading tomcat..."
-    curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz > /dev/null 2>&1 &
+    curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz >/dev/null 2>&1 &
     spinner
-    # Check if the file is downloaded 
+    # Check if the file is downloaded
     if [ -f tomcat.tar.gz ]; then
-        echo -e "$info Downloaded tomcat"  
+        echo -e "$info Downloaded tomcat"
         break
     elif [ $i -ne 4 ]; then
         echo -e "$warn Attempt $i failed! Trying again..."
@@ -87,16 +86,16 @@ for i in {1..4}; do
         exit 1
     fi
 done
- 
+
 # Extract tomcat to /opt/tomcat
 echo -e "$info Extracting tomcat..."
-(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 > /dev/null 2>&1) &
+(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 >/dev/null 2>&1) &
 spinner
 if [ $? -eq 0 ]; then
-   echo -e "$info Extracted tomcat"
+    echo -e "$info Extracted tomcat"
 else
-   echo -e "$error Failed to extract Tomcat"
-   exit 1
+    echo -e "$error Failed to extract Tomcat"
+    exit 1
 fi
 
 # Grant tomcat ownership over the extracted installation
@@ -106,20 +105,24 @@ chmod -R u+x /opt/tomcat/bin
 echo -e "$info \033[1;32mInstaled tomcat\033[0m"
 
 # Define privileged users in Tomcat’s configuration
-# subtitutes tomcat-users closing tag with a role tag
+# Subtitutes tomcat-users closing tag with a role tag
 sed -i '/<\/tomcat-users>/c\<role rolename="manager-gui" \/>' /opt/tomcat/conf/tomcat-users.xml
-# adds the rest of the role tags
-echo '<user username="manager" password="manager_password" roles="manager-gui" />' >> /opt/tomcat/conf/tomcat-users.xml
-echo '<role rolename="admin-gui" />' >> /opt/tomcat/conf/tomcat-users.xml
-echo '<user username="admin" password="admin_password" roles="manager-gui,admin-gui" />' >> /opt/tomcat/conf/tomcat-users.xml
-# closes the tomcat-users tag
-echo '</tomcat-users>' >> /opt/tomcat/conf/tomcat-users.xml
+# Adds the rest of the role tags
+echo '<user username="manager" password="manager_password" roles="manager-gui" />' >>/opt/tomcat/conf/tomcat-users.xml
+echo '<role rolename="admin-gui" />' >>/opt/tomcat/conf/tomcat-users.xml
+echo '<user username="admin" password="admin_password" roles="manager-gui,admin-gui" />' >>/opt/tomcat/conf/tomcat-users.xml
+# Closes the tomcat-users tag
+echo '</tomcat-users>' >>/opt/tomcat/conf/tomcat-users.xml
+
+echo -e "$info Configured tomcat-users.xml"
 
 # Remove the restriction for the Manager and Host Manager page by commenting out RemoteAddrValve
 sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/c\<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"' /opt/tomcat/webapps/manager/META-INF/context.xml
 sed -i '/allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/>/c\allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/> -->' /opt/tomcat/webapps/manager/META-INF/context.xml
 sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/c\<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"' /opt/tomcat/webapps/host-manager/META-INF/context.xml
 sed -i '/allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/>/c\allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/> -->' /opt/tomcat/webapps/host-manager/META-INF/context.xml
+
+echo -e "$info Removed restriction for the Manager and Host Manager page"
 
 # Store the JAVA_HOME path in a variable
 java_home=$(update-java-alternatives -l | tr -s ' ' | cut -d' ' -f3)
@@ -159,7 +162,9 @@ EOF
 )
 
 # Add the content to the service file
-echo "$content" > /etc/systemd/system/tomcat.service
+echo "$content" >/etc/systemd/system/tomcat.service
+
+echo -e "$info Created tomcat.service file"
 
 # Reload the systemd daemon
 systemctl daemon-reload
@@ -168,7 +173,7 @@ systemctl daemon-reload
 systemctl start tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo -e "$info Started tomcat service"
-else  
+else
     echo -e "$error Failed to start Tomcat service"
     exit 1
 fi
