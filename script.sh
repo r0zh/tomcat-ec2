@@ -57,12 +57,12 @@ else
 fi
 
 # Update the package manager cache
-echo "Updating package manager cache..."
+echo "$info Updating package manager cache..."
 apt update > /dev/null 2>&1 &
 spinner
 
 # Install the JDK
-echo "Installing JDK-17..."
+echo "$info Installing JDK-17..."
 apt install openjdk-17-jdk -y > /dev/null 2>&1 &
 spinner
 
