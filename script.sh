@@ -180,6 +180,9 @@ rm /etc/systemd/system/tomcat.service
 # Reload the systemd daemon
 systemctl daemon-reload
 
+# Remove temporary files
+rm /tmp/tomcat.tar.gz
+
 # Remove the Tomcat directory
 rm -rf /opt/tomcat
 
