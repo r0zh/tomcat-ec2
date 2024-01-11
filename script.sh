@@ -62,7 +62,9 @@ apt update > /dev/null 2>&1 &
 spinner
 
 # Install the JDK
-apt install openjdk-17-jdk -y
+echo "Installing JDK-17..."
+apt install openjdk-17-jdk -y > /dev/null 2>&1 &
+spinner
 
 # Navigate to the /tmp directory
 cd /tmp
