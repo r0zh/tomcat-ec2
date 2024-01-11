@@ -84,11 +84,11 @@ echo -e "\033[1;32mInstaled tomcat successfully!✅\033[0m"
 # subtitutes tomcat-users closing tag with a role tag
 sed -i '/<\/tomcat-users>/c\<role rolename="manager-gui" \/>' /opt/tomcat/conf/tomcat-users.xml
 # adds the rest of the role tags
-echo '<user username="manager" password="manager_password" roles="manager-gui" />' | tee -a /opt/tomcat/conf/tomcat-users.xml
-echo '<role rolename="admin-gui" />' | tee -a /opt/tomcat/conf/tomcat-users.xml
-echo '<user username="admin" password="admin_password" roles="manager-gui,admin-gui" />' | tee -a /opt/tomcat/conf/tomcat-users.xml
+echo '<user username="manager" password="manager_password" roles="manager-gui" />' >> /opt/tomcat/conf/tomcat-users.xml
+echo '<role rolename="admin-gui" />' >> /opt/tomcat/conf/tomcat-users.xml
+echo '<user username="admin" password="admin_password" roles="manager-gui,admin-gui" />' >> /opt/tomcat/conf/tomcat-users.xml
 # closes the tomcat-users tag
-echo '</tomcat-users>' | tee -a /opt/tomcat/conf/tomcat-users.xml
+echo '</tomcat-users>' >> tee -a /opt/tomcat/conf/tomcat-users.xml
 
 # Remove the restriction for the Manager and Host Manager page by commenting out RemoteAddrValve
 sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/c\<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"' /opt/tomcat/webapps/manager/META-INF/context.xml
