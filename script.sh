@@ -88,7 +88,7 @@ echo '<user username="manager" password="manager_password" roles="manager-gui" /
 echo '<role rolename="admin-gui" />' >> /opt/tomcat/conf/tomcat-users.xml
 echo '<user username="admin" password="admin_password" roles="manager-gui,admin-gui" />' >> /opt/tomcat/conf/tomcat-users.xml
 # closes the tomcat-users tag
-echo '</tomcat-users>' >> tee -a /opt/tomcat/conf/tomcat-users.xml
+echo '</tomcat-users>' >> /opt/tomcat/conf/tomcat-users.xml
 
 # Remove the restriction for the Manager and Host Manager page by commenting out RemoteAddrValve
 sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/c\<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"' /opt/tomcat/webapps/manager/META-INF/context.xml
