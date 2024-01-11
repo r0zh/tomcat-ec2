@@ -142,7 +142,7 @@ systemctl daemon-reload
 # Start the Tomcat service
 systemctl start tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "$info \033[32mTomcat service started successfully\033[0m"
+    echo -e "$info \033[32mStarted tomcat service successfully\033[0m"
 else  
     echo -e "$error Failed to start Tomcat service"
     exit 1
@@ -151,7 +151,7 @@ fi
 # Enable the Tomcat service to start on boot
 systemctl enable tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "$info \033[32mTomcat service enabled successfully\033[0m"
+    echo -e "$info \033[32mEnabled tomcat service successfully\033[0m"
 else
     echo -e "$error Failed to enable Tomcat service"
     exit 1
@@ -159,9 +159,9 @@ fi
 
 # Check if the Tomcat service is active
 if systemctl is-active --quiet tomcat; then # if the service is active (returns 0)
-    echo -e "\033[1;32m Server is running! 🚀 \033[0m"
+    echo -e "$info \033[1;32mServer is running! 🚀 \033[0m"
 else # if the service is not active (returns 3)
-    echo -e "\033[1;31m Something went wrong! ❌ \033[0m"
+    echo -e "$error Something went wrong"
 fi
 
 # Wait for user input to undo everything
