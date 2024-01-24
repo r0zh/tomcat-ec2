@@ -1,4 +1,4 @@
 aws cloudformation deploy \
   --template-file ./stack.yml \
-  --stack-name $STACK_NAME \
+  --stack-name tomcat \
   --capabilities CAPABILITY_IAM
