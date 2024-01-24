@@ -31,7 +31,3 @@ This is a CloudFormation template for creating an EC2 instance and a security gr
 2. Create a CloudFormation stack using the `stack.yml` template.
 3. SSH into the EC2 instance.
 4. Run the `tomcat_install.sh` script.
-
-## Note
-
-Please ensure that you have the necessary permissions to create resources in AWS.
