@@ -5,170 +5,172 @@ warn="\033[43m\033[37m\033[1m warn \033[0m"
 error="\033[41m\033[37m\033[1m fail \033[0m"
 info="\033[44m\033[37m\033[1m info \033[0m"
 
-# check if the script is run as root
+# Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
-	echo -e "\033[1;31mthis script needs to be run with sudo. please run it again as root\033[0m"
+	echo -e "\033[1;31mThis script needs to be run with sudo. Please run it again as root\033[0m"
 	exit
 fi
 
-create a user called tomcat
-# check if the user already exists
+# Create a user called tomcat
+# Check if the user already exists
 if id -u tomcat &>/dev/null; then
-	echo -e "\033[1;34muser tomcat already exists. this script will change it group, home directory and login shell. proceed? (y/n)...\033[0m"
+	echo -e "\033[1;34mUser tomcat already exists. This script will change it group, home directory and login shell. Proceed? (Y/n)...\033[0m"
 	read -r answer
-	if [ "$answer" != "${answer#[yy]}" ]; then
-		# update the tomcat user home directory and login shell
+	if [ "$answer" != "${answer#[Yy]}" ]; then
+		# Update the tomcat user home directory and login shell
 		mkdir /opt/tomcat
-		echo -e "$info created tomcat home directory."
+		echo -e "$info Created tomcat home directory."
 		usermod -m -d /opt/tomcat -s /bin/false tomcat
-		echo -e "$info updated tomcat user."
-		# add tomcat to the tomcat group
+		echo -e "$info Updated tomcat user."
+		# Add tomcat to the tomcat group
 		if grep -q "^tomcat:" /etc/group; then
-			echo -e "$info group tomcat already exists. skipping group creation..."
+			echo -e "$info Group tomcat already exists. Skipping group creation..."
 		else
 			groupadd tomcat
-			echo -e "$info added tomcat group."
+			echo -e "$info Added tomcat group."
 		fi
-		usermod -a -g tomcat tomcat
-		echo -e "$info added tomcat user to tomcat group."
+		usermod -a -G tomcat tomcat
+		echo -e "$info Added tomcat user to tomcat group."
 	else
-		echo -e "\033[31mexiting.\033[0m"
+		echo -e "\033[31mExiting.\033[0m"
 		exit 1
 	fi
 else
 	useradd -m -d /opt/tomcat -s /bin/false tomcat
-	echo -e "$info \033[1;32mcreated tomcat user.\033[0m"
+	echo -e "$info \033[1;32mCreated tomcat user.\033[0m"
 fi
 
-# update the package manager cache
-echo -e "$info updating package manager cache..."
+# Update the package manager cache
+echo -e "$info Updating package manager cache..."
 apt update >/dev/null 2>&1
 
-# install the jdk
-echo -e "$info installing jdk-17..."
+# Install the jdk
+echo -e "$info Installing JDK-17..."
 apt install openjdk-17-jdk -y >/dev/null 2>&1
 
-# navigate to the /tmp directory
+# Navigate to the /tmp directory
 cd /tmp
 
-# download tomcat using curl
+# Download tomcat using curl
 for i in {1..4}; do
-	echo -e "$info downloading tomcat..."
+	echo -e "$info Downloading tomcat..."
 	curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz >/dev/null 2>&1
-	# check if the file is downloaded
+	# Check if the file is downloaded
 	if [ -f tomcat.tar.gz ]; then
-		echo -e "$info downloaded tomcat"
+		echo -e "$info Downloaded tomcat"
 		break
 	elif [ $i -ne 4 ]; then
-		echo -e "$warn attempt $i failed! trying again..."
+		echo -e "$warn Attempt $i failed! Trying again..."
 		sleep 2
 	elif [ ! -f tomcat.tar.gz ] && [ $i -eq 4 ]; then
-		echo -e "$error failed to download tomcat after 3 attempts. exiting."
+		echo -e "$error Failed to download tomcat after 3 attempts. Exiting."
 		exit 1
 	fi
 done
 
-# extract tomcat to /opt/tomcat
-echo -e "$info extracting tomcat..."
-(tar xzvf tomcat.tar.gz -c /opt/tomcat --strip-components=1 >/dev/null 2>&1)
+# Extract tomcat to /opt/tomcat
+echo -e "$info Extracting tomcat..."
+(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 >/dev/null 2>&1)
 if [ $? -eq 0 ]; then
-	echo -e "$info extracted tomcat"
+	echo -e "$info Extracted tomcat"
 else
-	echo -e "$error failed to extract tomcat"
+	echo -e "$error Failed to extract Tomcat"
 	exit 1
 fi
 
-# grant tomcat ownership over the extracted installation
-chown -r tomcat:tomcat /opt/tomcat/
-chmod -r u+x /opt/tomcat/bin
+# Grant tomcat ownership over the extracted installation
+chown -R tomcat:tomcat /opt/tomcat/
+chmod -R u+x /opt/tomcat/bin
 
-echo -e "$info \033[1;32minstaled tomcat\033[0m"
+echo -e "$info \033[1;32mInstaled tomcat\033[0m"
 
-# subtitutes tomcat-users closing tag with a role tag
+# Define privileged users in Tomcat’s configuration
+# Subtitutes tomcat-users closing tag with a role tag
 sed -i '/<\/tomcat-users>/c\<role rolename="manager-gui" \/>' /opt/tomcat/conf/tomcat-users.xml
-# adds the rest of the role tags
+# Adds the rest of the role tags
 echo '<user username="manager" password="manager_password" roles="manager-gui" />' >>/opt/tomcat/conf/tomcat-users.xml
 echo '<role rolename="admin-gui" />' >>/opt/tomcat/conf/tomcat-users.xml
 echo '<user username="admin" password="admin_password" roles="manager-gui,admin-gui" />' >>/opt/tomcat/conf/tomcat-users.xml
-# closes the tomcat-users tag
+# Closes the tomcat-users tag
 echo '</tomcat-users>' >>/opt/tomcat/conf/tomcat-users.xml
 
-echo -e "$info configured tomcat-users.xml"
+echo -e "$info Configured tomcat-users.xml"
 
-# remove the restriction for the manager and host manager page by commenting out remoteaddrvalve
-sed -i '/<valve classname="org.apache.catalina.valves.remoteaddrvalve"/c\<!-- <valve classname="org.apache.catalina.valves.remoteaddrvalve"' /opt/tomcat/webapps/manager/meta-inf/context.xml
-sed -i '/allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/>/c\allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/> -->' /opt/tomcat/webapps/manager/meta-inf/context.xml
-sed -i '/<valve classname="org.apache.catalina.valves.remoteaddrvalve"/c\<!-- <valve classname="org.apache.catalina.valves.remoteaddrvalve"' /opt/tomcat/webapps/host-manager/meta-inf/context.xml
-sed -i '/allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/>/c\allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/> -->' /opt/tomcat/webapps/host-manager/meta-inf/context.xml
+# Remove the restriction for the Manager and Host Manager page by commenting out RemoteAddrValve
+sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/c\<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"' /opt/tomcat/webapps/manager/META-INF/context.xml
+sed -i '/allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/>/c\allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/> -->' /opt/tomcat/webapps/manager/META-INF/context.xml
+sed -i '/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/c\<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"' /opt/tomcat/webapps/host-manager/META-INF/context.xml
+sed -i '/allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/>/c\allow="127\\.\\d+\\.\\d+\\.\\d+|::1|0:0:0:0:0:0:0:1" \/> -->' /opt/tomcat/webapps/host-manager/META-INF/context.xml
 
-echo -e "$info removed restriction for the manager and host manager page"
+echo -e "$info Removed restriction for the Manager and Host Manager page"
 
-# store the java_home path in a variable
+# Store the JAVA_HOME path in a variable
 java_home=$(update-java-alternatives -l | tr -s ' ' | cut -d' ' -f3)
 
-# create a systemd service file for tomcat
+# Create a systemd service file for Tomcat
 touch /etc/systemd/system/tomcat.service
 
-# define the contents of the service file
+# Define the contents of the service file
 content=$(
-	cat <<eof
-[unit]
-description=tomcat
-after=network.target
+	cat <<EOF
+[Unit]
+Description=Tomcat
+After=network.target
 
-[service]
-type=forking
+[Service]
+Type=forking
 
-user=tomcat
-group=tomcat
+User=tomcat
+Group=tomcat
 
-environment="java_home=$java_home"
-environment="java_opts=-djava.security.egd=file:///dev/urandom"
-environment="catalina_base=/opt/tomcat"
-environment="catalina_home=/opt/tomcat"
-environment="catalina_pid=/opt/tomcat/temp/tomcat.pid"
-environment="catalina_opts=-xms512m -xmx1024m -server -xx:+useparallelgc"
+Environment="JAVA_HOME=$java_home"
+Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom"
+Environment="CATALINA_BASE=/opt/tomcat"
+Environment="CATALINA_HOME=/opt/tomcat"
+Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
 
-execstart=/opt/tomcat/bin/startup.sh
-execstop=/opt/tomcat/bin/shutdown.sh
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
 
-restartsec=10
-restart=always
+RestartSec=10
+Restart=always
 
-[install]
-wantedby=multi-user.target
-eof
+[Install]
+WantedBy=multi-user.target
+EOF
 )
 
-# add the content to the service file
+# Add the content to the service file
 echo "$content" >/etc/systemd/system/tomcat.service
 
-echo -e "$info created tomcat.service file"
+echo -e "$info Created tomcat.service file"
 
-# reload the systemd daemon
+# Reload the systemd daemon
 systemctl daemon-reload
 
-# start the tomcat service
+# Start the Tomcat service
 systemctl start tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-	echo -e "$info started tomcat service"
+	echo -e "$info Started tomcat service"
 else
-	echo -e "$error failed to start tomcat service"
+	echo -e "$error Failed to start Tomcat service"
 	exit 1
 fi
 
-# enable the tomcat service to start on boot
+# Enable the Tomcat service to start on boot
 systemctl enable tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-	echo -e "$info enabled tomcat service"
+	echo -e "$info Enabled tomcat service"
 else
-	echo -e "$error failed to enable tomcat service"
+	echo -e "$error Failed to enable Tomcat service"
 	exit 1
 fi
 
-# check if the tomcat service is active
+# Check if the Tomcat service is active
 if systemctl is-active --quiet tomcat; then # if the service is active (returns 0)
-	echo -e "$info \033[1;32mserver is running at port 8080 🚀 \033[0m"
+	echo -e "$info \033[1;32mServer is running at port 8080 🚀 \033[0m"
 else # if the service is not active (returns 3)
-	echo -e "$error something went wrong"
+	echo -e "$error Something went wrong"
 fi
+
