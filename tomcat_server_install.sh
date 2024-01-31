@@ -1,101 +1,81 @@
 #!/bin/bash
 
-# Define log decorations
-warn="\033[43m\033[37m\033[1m WARN \033[0m"
-error="\033[41m\033[37m\033[1m FAIL \033[0m"
-info="\033[44m\033[37m\033[1m INFO \033[0m"
-
-# Define a spinner function
-spinner() {
-    local pid=$!         # Store the PID of the previous command
-    local delay=0.1      # Delay between each frame
-    local spinstr='/-\|' # Define the spinner characters
-    # Continue looping until the process with the given PID is no longer running
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-        local temp=${spinstr#?}
-        printf " [%c] " "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "   \b\b\b\b" # Clear the spinner
-}
+# define log decorations
+warn="\033[43m\033[37m\033[1m warn \033[0m"
+error="\033[41m\033[37m\033[1m fail \033[0m"
+info="\033[44m\033[37m\033[1m info \033[0m"
 
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
-    echo -e "\033[1;31mThis script needs to be run with sudo. Please run it again as root\033[0m"
-    exit
+	echo -e "\033[1;31mThis script needs to be run with sudo. Please run it again as root\033[0m"
+	exit
 fi
 
 # Create a user called tomcat
 # Check if the user already exists
 if id -u tomcat &>/dev/null; then
-    echo -e "\033[1;34mUser tomcat already exists. This script will change it group, home directory and login shell. Proceed? (Y/n)...\033[0m"
-    read -r answer
-    if [ "$answer" != "${answer#[Yy]}" ]; then
-        # Update the tomcat user home directory and login shell
-        mkdir /opt/tomcat
-        echo -e "$info Created tomcat home directory."
-        usermod -m -d /opt/tomcat -s /bin/false tomcat
-        echo -e "$info Updated tomcat user."
-        # Add tomcat to the tomcat group
-        if grep -q "^tomcat:" /etc/group; then
-            echo -e "$info Group tomcat already exists. Skipping group creation..."
-        else
-            groupadd tomcat
-            echo -e "$info Added tomcat group."
-        fi
-        usermod -a -G tomcat tomcat
-        echo -e "$info Added tomcat user to tomcat group."
-    else
-        echo -e "\033[31mExiting.\033[0m"
-        exit 1
-    fi
+	echo -e "\033[1;34mUser tomcat already exists. This script will change it group, home directory and login shell. Proceed? (Y/n)...\033[0m"
+	read -r answer
+	if [ "$answer" != "${answer#[Yy]}" ]; then
+		# Update the tomcat user home directory and login shell
+		mkdir /opt/tomcat
+		echo -e "$info Created tomcat home directory."
+		usermod -m -d /opt/tomcat -s /bin/false tomcat
+		echo -e "$info Updated tomcat user."
+		# Add tomcat to the tomcat group
+		if grep -q "^tomcat:" /etc/group; then
+			echo -e "$info Group tomcat already exists. Skipping group creation..."
+		else
+			groupadd tomcat
+			echo -e "$info Added tomcat group."
+		fi
+		usermod -a -G tomcat tomcat
+		echo -e "$info Added tomcat user to tomcat group."
+	else
+		echo -e "\033[31mExiting.\033[0m"
+		exit 1
+	fi
 else
-    useradd -m -d /opt/tomcat -s /bin/false tomcat
-    echo -e "$info \033[1;32mCreated tomcat user.\033[0m"
+	useradd -m -d /opt/tomcat -s /bin/false tomcat
+	echo -e "$info \033[1;32mCreated tomcat user.\033[0m"
 fi
 
 # Update the package manager cache
 echo -e "$info Updating package manager cache..."
-apt update >/dev/null 2>&1 &
-spinner
+apt update >/dev/null 2>&1
 
-# Install the JDK
+# Install the jdk
 echo -e "$info Installing JDK-17..."
-apt install openjdk-17-jdk -y >/dev/null 2>&1 &
-spinner
+apt install openjdk-17-jdk -y >/dev/null 2>&1
 
 # Navigate to the /tmp directory
 cd /tmp
 
 # Download tomcat using curl
 for i in {1..4}; do
-    echo -e "$info Downloading tomcat..."
-    curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz >/dev/null 2>&1 &
-    spinner
-    # Check if the file is downloaded
-    if [ -f tomcat.tar.gz ]; then
-        echo -e "$info Downloaded tomcat"
-        break
-    elif [ $i -ne 4 ]; then
-        echo -e "$warn Attempt $i failed! Trying again..."
-        sleep 2
-    elif [ ! -f tomcat.tar.gz ] && [ $i -eq 4 ]; then
-        echo -e "$error Failed to download tomcat after 3 attempts. Exiting."
-        exit 1
-    fi
+	echo -e "$info Downloading tomcat..."
+	curl -s -o tomcat.tar.gz https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.18/bin/apache-tomcat-10.1.18.tar.gz >/dev/null 2>&1
+	# Check if the file is downloaded
+	if [ -f tomcat.tar.gz ]; then
+		echo -e "$info Downloaded tomcat"
+		break
+	elif [ $i -ne 4 ]; then
+		echo -e "$warn Attempt $i failed! Trying again..."
+		sleep 2
+	elif [ ! -f tomcat.tar.gz ] && [ $i -eq 4 ]; then
+		echo -e "$error Failed to download tomcat after 3 attempts. Exiting."
+		exit 1
+	fi
 done
 
 # Extract tomcat to /opt/tomcat
 echo -e "$info Extracting tomcat..."
-(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 >/dev/null 2>&1) &
-spinner
+(tar xzvf tomcat.tar.gz -C /opt/tomcat --strip-components=1 >/dev/null 2>&1)
 if [ $? -eq 0 ]; then
-    echo -e "$info Extracted tomcat"
+	echo -e "$info Extracted tomcat"
 else
-    echo -e "$error Failed to extract Tomcat"
-    exit 1
+	echo -e "$error Failed to extract Tomcat"
+	exit 1
 fi
 
 # Grant tomcat ownership over the extracted installation
@@ -132,7 +112,7 @@ touch /etc/systemd/system/tomcat.service
 
 # Define the contents of the service file
 content=$(
-    cat <<EOF
+	cat <<EOF
 [Unit]
 Description=Tomcat
 After=network.target
@@ -172,24 +152,25 @@ systemctl daemon-reload
 # Start the Tomcat service
 systemctl start tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "$info Started tomcat service"
+	echo -e "$info Started tomcat service"
 else
-    echo -e "$error Failed to start Tomcat service"
-    exit 1
+	echo -e "$error Failed to start Tomcat service"
+	exit 1
 fi
 
 # Enable the Tomcat service to start on boot
 systemctl enable tomcat >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    echo -e "$info Enabled tomcat service"
+	echo -e "$info Enabled tomcat service"
 else
-    echo -e "$error Failed to enable Tomcat service"
-    exit 1
+	echo -e "$error Failed to enable Tomcat service"
+	exit 1
 fi
 
 # Check if the Tomcat service is active
 if systemctl is-active --quiet tomcat; then # if the service is active (returns 0)
-    echo -e "$info \033[1;32mServer is running at port 8080 🚀 \033[0m"
+	echo -e "$info \033[1;32mServer is running at port 8080 🚀 \033[0m"
 else # if the service is not active (returns 3)
-    echo -e "$error Something went wrong"
+	echo -e "$error Something went wrong"
 fi
+
