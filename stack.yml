@@ -1,5 +1,5 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Plantilla para crear grupo de seguridad'
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Plantilla para crear grupo de seguridad"
 Resources:
   ApplicationServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -24,4 +24,6 @@ Resources:
       SecurityGroupIds:
         - !Ref ApplicationServerSecurityGroup
       IamInstanceProfile: LabInstanceProfile
-      Tags: [{Key: Name,Value: TomcatInstance}]
+      Tags:
+        - Key: Name
+          Value: TomcatInstance
