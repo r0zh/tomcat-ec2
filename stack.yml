@@ -143,7 +143,7 @@ Resources:
           cd /tmp
           git clone https://github.com/r0zh/tomcat-ec2
           cd tomcat-ec2
-          ./tomcat_install_nospin.sh
+          ./tomcat_server_install_nospin.sh
           # Esta tiene que serla ultima instrucción
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
 Outputs:
