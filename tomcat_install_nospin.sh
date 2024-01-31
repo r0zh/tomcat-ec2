@@ -6,12 +6,12 @@ error="\033[41m\033[37m\033[1m fail \033[0m"
 info="\033[44m\033[37m\033[1m info \033[0m"
 
 # check if the script is run as root
-if [ "$euid" -ne 0 ]; then
+if [ "$EUID" -ne 0 ]; then
 	echo -e "\033[1;31mthis script needs to be run with sudo. please run it again as root\033[0m"
 	exit
 fi
 
-# create a user called tomcat
+create a user called tomcat
 # check if the user already exists
 if id -u tomcat &>/dev/null; then
 	echo -e "\033[1;34muser tomcat already exists. this script will change it group, home directory and login shell. proceed? (y/n)...\033[0m"
