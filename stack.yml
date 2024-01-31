@@ -1,5 +1,32 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Plantilla para crear grupo de seguridad"
+Description: "Despliegue para app Tomcat"
+Parameters:
+  EC2AMI:
+    Description: Imagen del Sistema Operativo
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: "/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
+  KeyName:
+    Description: Par clave valor para acceso SSH
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: vockey
+  InstanceType:
+    Description: Tamaño instancia EC2
+    Type: String
+    Default: t2.small
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+    ConstraintDescription: Tipos de instancia validas
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: "9"
+    MaxLength: "18"
+    Default: 0.0.0.0/0
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
 Resources:
   ApplicationServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -15,15 +42,119 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
-  Ec2Instance:
+  EC2Instance:
     Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT100M
+        Count: "1"
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          full_install:
+            - install_and_enable_cfn_hup
+        install_and_enable_cfn_hup:
+          files:
+            "/etc/cfn/cfn-hup.conf":
+              content:
+                Fn::Join:
+                  - ""
+                  - - "[main]\n"
+                    - stack=
+                    - Ref: AWS::StackId
+                    - "\n"
+                    - region=
+                    - Ref: AWS::Region
+                    - "\n"
+              mode: "000400"
+              owner: root
+              group: root
+            "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+              content:
+                Fn::Join:
+                  - ""
+                  - - "[cfn-auto-reloader-hook]\n"
+                    - "triggers=post.update\n"
+                    - "path=Resources.EC2Instance.Metadata.AWS::CloudFormation::Init\n"
+                    - "action=/opt/aws/bin/cfn-init -v"
+                    - "--stack "
+                    - Ref: AWS::StackName
+                    - " --resource EC2Instance"
+                    - " --configsets full_install"
+                    - " --region "
+                    - Ref: AWS::Region
+                    - "\n"
+                    - "runas=root"
+            "/lib/systemd/system/cfn-hup.service":
+              content:
+                Fn::Join:
+                  - ""
+                  - - "[Unit]\n"
+                    - "Description=cfn-hup daemon\n\n"
+                    - "[Service]\n"
+                    - "Type=simple\n"
+                    - "ExecStart=/opt/aws/bin/cfn-hup\n"
+                    - "Restart=always\n\n"
+                    - "[Install]\n"
+                    - "WantedBy=multi-user.target"
+          commands:
+            01enable_cfn_hup:
+              command: systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: systemctl start cfn-hup.service
     Properties:
-      ImageId: ami-06aa3f7caf3a30282
-      InstanceType: t2.small
-      KeyName: vockey
+      InstanceType:
+        Ref: InstanceType
       SecurityGroupIds:
-        - !Ref ApplicationServerSecurityGroup
+        - Ref: ApplicationServerSecurityGroup
+      KeyName:
+        Ref: KeyName
       IamInstanceProfile: LabInstanceProfile
+      ImageId:
+        Ref: EC2AMI
       Tags:
         - Key: Name
           Value: TomcatInstance
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          exec > /tmp/userdata.log 2>&1
+          # Actualizar todas las apps
+          apt update -y
+          # Instalar unzip
+          apt install unzip
+          # Instalación CodeDeploy Agent
+          apt install ruby-full -y
+          apt install wget -y
+          cd /home/ubuntu
+          wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
+          chmod +x ./install
+          ./install auto > /tmp/logfile
+          service codedeploy-agent start
+          # Instalar AWS helper scripts de CloudFormation
+          mkdir -p /opt/aws/bin
+          wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          python3 -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-py3-latest.tar.gz
+          ln -s /root/aws-cfn-bootstrap-latest/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource EC2Instance --configsets full_install --region ${AWS::Region}
+          sleep 1
+          # Instala git y descarga el script de instalación de tomcat
+          apt install git
+          cd /tmp
+          git clone https://github.com/r0zh/tomcat-ec2
+          cd tomcat-ec2
+          ./tomcat_install_nospin.sh
+          # Esta tiene que serla ultima instrucción
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
+Outputs:
+  TomcatURL:
+    Value:
+      Fn::Sub:
+        - http://${PublicIP}:8080/myApp
+        - PublicIP:
+            Fn::GetAtt:
+              - EC2Instance
+              - PublicIp
+    Description: "URL to the Tomcat console."
+    Export:
+      Name: TomcatURL
