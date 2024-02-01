@@ -151,7 +151,7 @@ Outputs:
   TomcatURL:
     Value:
       Fn::Sub:
-        - http://${PublicIP}:8080/myApp
+        - http://${PublicIP}:8080/app/hola
         - PublicIP:
             Fn::GetAtt:
               - EC2Instance
