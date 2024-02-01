@@ -148,7 +148,18 @@ Resources:
           # Esta tiene que serla ultima instrucción
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
 Outputs:
-  TomcatURL:
+  TomcatDashboardURL:
+    Value:
+      Fn::Sub:
+        - http://${PublicIP}:8080
+        - PublicIP:
+            Fn::GetAtt:
+              - EC2Instance
+              - PublicIp
+    Description: "URL to the Tomcat dashboard."
+    Export:
+      Name: TomcatDashboardURL
+  TomcatAppURL:
     Value:
       Fn::Sub:
         - http://${PublicIP}:8080/app/hola
@@ -156,6 +167,6 @@ Outputs:
             Fn::GetAtt:
               - EC2Instance
               - PublicIp
-    Description: "URL to the Tomcat console."
+    Description: "URL to the tomcat dummy aplication."
     Export:
-      Name: TomcatURL
+      Name: TomcatAppURL

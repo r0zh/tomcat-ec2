@@ -6,5 +6,5 @@ aws cloudformation deploy \
 	--capabilities CAPABILITY_IAM
 if [ $? -eq 0 ]; then
 	aws cloudformation list-exports \
-		--query "Exports[?Name=='TomcatURL'].Value"
+		--query "Exports[?Name=='TomcatDashboardURL' || Name=='TomcatAppURL']"
 fi
