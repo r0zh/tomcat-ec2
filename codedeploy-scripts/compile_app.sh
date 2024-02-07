@@ -1,5 +1,5 @@
 #!/bin/bash
 
 # build the app
-cd app/
+cd ./app/
 ./gradlew clean war
