@@ -21,4 +21,5 @@ jobs:
           aws-access-key-id: ${{ secrets.AccessKeyId }}
           aws-secret-access-key: ${{ secrets.SecretAccessKey }}
           aws-session-token: ${{ secrets.SessionToken }}
-        run: echo "HOlA"
+      - name:
+        run: aws deploy create-deployment --aplication-name "TomcatApplication" --deployment-group-name "TomcatDeploymentGroup" --github-location-repository=${{ github.repository }}, commitId=${{ github.sha }}
