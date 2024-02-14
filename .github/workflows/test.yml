@@ -26,6 +26,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3 # v3.0.0
 
+      - run: cd ./app/
       - run: chmod +x gradlew
       - name: Build with Gradle Wrapper
         run: ./gradlew test
