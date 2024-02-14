@@ -1,0 +1,24 @@
+name: Deploy code with aws codedeploy
+
+on:
+  workflow_run:
+    workflows:
+      - Java Test and Build with Gradle
+    types:
+      - completed
+
+jobs:
+  on-success:
+    runs-on: ubuntu-20.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-region: ${{ secrets.Region }}
+          aws-access-key-id: ${{ secrets.AccessKeyId }}
+          aws-secret-access-key: ${{ secrets.SecretAccessKey }}
+          aws-session-token: ${{ secrets.SessionToken }}
+        run: echo "HOlA"
