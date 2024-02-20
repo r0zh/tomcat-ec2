@@ -1,7 +1,7 @@
 version: 0.0
 os: linux
 files:
-  - source: app/build/libs/app.war
+  - source: build/libs/app.war
     destination: /opt/tomcat/webapps/
 hooks:
   ApplicationStop:
