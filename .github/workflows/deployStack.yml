@@ -13,15 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check if workflow has been run before
-        id: check
-        run: |
-          if [ -f ".workflow-setup-done" ]; then
-            echo "WORKFLOW_SETUP_DONE=true" >> $GITHUB_ENV
-          else
-            echo "WORKFLOW_SETUP_DONE=false" >> $GITHUB_ENV
-          fi
-
       - name: "Configure AWS Credentials"
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
@@ -36,3 +27,6 @@ jobs:
         with:
           name: tomcat
           template: stack.yml
+      - name: Change env variable
+        if: env.WORKFLOW_SETUP_DONE == 'false'
+        run: echo "WORKFLOW_SETUP_DONE=true" >> $GITHUB_ENV
