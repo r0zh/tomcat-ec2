@@ -2,8 +2,7 @@ name: Deploy code with aws codedeploy
 
 on:
   workflow_run:
-    workflows:
-      ["Java Test and Build with Gradle", "Deploy AWS cloudformation stack"]
+    workflows: ["Java Test and Build with Gradle"]
     types:
       - completed
 
@@ -15,21 +14,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Wait for Java Test and Build with Gradle to succeed
-        uses: lewagon/wait-on-check-action@v1.3.3
-        with:
-          ref: ${{ github.ref }}
-          check-name: "Wait for Backend Main Pipeline"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-      - name: Wait for Deploy AWS cloudformation stack to succeed
-        uses: lewagon/wait-on-check-action@v1.3.3
-        with:
-          ref: ${{ github.ref }}
-          check-name: "Deploy AWS cloudformation stack"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
 
       - name: "Configure AWS Credentials"
         uses: aws-actions/configure-aws-credentials@v4.0.2
