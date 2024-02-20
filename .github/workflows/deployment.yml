@@ -22,4 +22,4 @@ jobs:
           aws-secret-access-key: ${{ secrets.SecretAccessKey }}
           aws-session-token: ${{ secrets.SessionToken }}
       - name: "Deploy code"
-        run: aws deploy create-deployment --application-name "TomcatApplication" --deployment-group-name "TomcatDeploymentGroup" --github-location repository=${{ github.repository }}, commitId=${{ github.sha }}
+        run: aws deploy create-deployment --application-name "TomcatApplication" --deployment-group-name "TomcatDeploymentGroup" --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
