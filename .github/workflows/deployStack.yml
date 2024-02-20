@@ -9,6 +9,8 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Check if workflow has been run before
         id: check
         run: |
