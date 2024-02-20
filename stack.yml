@@ -28,6 +28,17 @@ Parameters:
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
 Resources:
+  CodeDeployApp:
+    Type: "AWS::CodeDeploy::Application"
+    Properties:
+      ApplicationName: "TomcatApplication"
+      ComputePlatform: "Server"
+  CodeDeployDeploymentGroup:
+    Type: "AWS::CodeDeploy::DeploymentGroup"
+    Properties:
+      ApplicationName: !Ref TomcatApplication
+      DeploymentGroupName: "TomcatDeploymentGroup"
+      ServiceRoleArn: "arn:aws:iam::602408337996:role/LabRole"
   ApplicationServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
