@@ -2,7 +2,7 @@ name: Java Test and Build with Gradle
 
 on:
   workflow_run:
-    workflows: [" Deploy AWS cloudformation stack"]
+    workflows: ["Deploy AWS cloudformation stack"]
     types:
       - completed
 
