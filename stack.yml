@@ -29,15 +29,19 @@ Parameters:
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
 Resources:
   CodeDeployApp:
-    Type: "AWS::CodeDeploy::Application"
+    Type: AWS::CodeDeploy::Application
     Properties:
-      ApplicationName: "TomcatApplication"
-      ComputePlatform: "Server"
+      ApplicationName: TomcatApplication
+      ComputePlatform: Server
   CodeDeployDeploymentGroup:
-    Type: "AWS::CodeDeploy::DeploymentGroup"
+    Type: AWS::CodeDeploy::DeploymentGroup
     Properties:
       ApplicationName: !Ref CodeDeployApp
-      DeploymentGroupName: "TomcatDeploymentGroup"
+      DeploymentGroupName: TomcatDeploymentGroup
+      Ec2TagFilters:
+        - Key: "Name"
+          Type: "KEY_AND_VALUE"
+          Value: "TomcatInstance"
       ServiceRoleArn: "arn:aws:iam::090075941231:role/LabRole"
   ApplicationServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
