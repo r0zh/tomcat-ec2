@@ -36,9 +36,9 @@ Resources:
   CodeDeployDeploymentGroup:
     Type: "AWS::CodeDeploy::DeploymentGroup"
     Properties:
-      ApplicationName: !Ref TomcatApplication
+      ApplicationName: !Ref CodeDeployApp
       DeploymentGroupName: "TomcatDeploymentGroup"
-      ServiceRoleArn: "arn:aws:iam::602408337996:role/LabRole"
+      ServiceRoleArn: "arn:aws:iam::090075941231:role/LabRole"
   ApplicationServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
